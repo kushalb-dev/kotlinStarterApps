@@ -15,12 +15,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -29,8 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.starterkotlin.stopwatch.ui.theme.StopWatchTheme
-import kotlinx.coroutines.delay
-import java.util.Locale
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,39 +36,22 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-fun formatTime(
-    millis: Long
-): String {
-    val seconds = (millis / 1000) % 60
-    val minutes = (millis / (1000 * 60)) % 60
-    val hours = (millis / (1000 * 60 * 60))
-    return String.format(Locale.getDefault(), "%02d:%02d:%02d:%03d", hours, minutes, seconds, millis % 1000)
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StopWatchApp(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: StopWatchViewModel = viewModel()
 ) {
-    var timiMilSecs by rememberSaveable { mutableLongStateOf(0L) }
-    var isRunning by rememberSaveable { mutableStateOf(false) }
-    var wasRunning by rememberSaveable { mutableStateOf(false) }
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             when (event) {
                 androidx.lifecycle.Lifecycle.Event.ON_PAUSE -> {
-                    if (isRunning) {
-                        wasRunning = true
-                        isRunning = false
-                    }
+                    viewModel.pauseTimer(true)
                 }
                 androidx.lifecycle.Lifecycle.Event.ON_RESUME -> {
-                    if (wasRunning) {
-                        isRunning = true
-                        wasRunning = false
-                    }
+                    viewModel.resumeTimer()
                 }
                 else -> {}
             }
@@ -83,15 +59,6 @@ fun StopWatchApp(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-    LaunchedEffect(isRunning) {
-        if (isRunning) {
-            val startTime = android.os.SystemClock.elapsedRealtime() - timiMilSecs
-            while (isRunning) {
-                timiMilSecs = android.os.SystemClock.elapsedRealtime() - startTime
-                delay(10L)
-            }
         }
     }
     Scaffold(
@@ -115,7 +82,7 @@ fun StopWatchApp(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = formatTime(timiMilSecs),
+                text = viewModel.getLatestTime(),
                 fontSize = 40.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -123,7 +90,7 @@ fun StopWatchApp(
             )
             Button(
                 onClick = {
-                    isRunning = true
+                    viewModel.startTimer()
                 },
                 Modifier.padding(8.dp)
             ) {
@@ -133,7 +100,7 @@ fun StopWatchApp(
             }
             Button(
                 onClick = {
-                    isRunning = false
+                    viewModel.pauseTimer()
                 },
                 Modifier.padding(8.dp)
             ) {
@@ -143,8 +110,7 @@ fun StopWatchApp(
             }
             Button(
                 onClick = {
-                    isRunning = false
-                    timiMilSecs = 0L
+                    viewModel.resetTimer()
                 },
                 Modifier.padding(8.dp)
             ) {
