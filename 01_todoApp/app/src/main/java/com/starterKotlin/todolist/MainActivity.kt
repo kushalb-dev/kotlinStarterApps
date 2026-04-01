@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,14 +62,14 @@ class MainActivity : ComponentActivity() {
 fun TodoApp(
     modifier: Modifier = Modifier,
 ) {
-    val todoList = remember { mutableStateListOf<TodoData>() }
+    val todoList = rememberSaveable { mutableStateListOf<TodoData>() }
     val onToggleTodoStatus: (TodoData) -> Unit = { item ->
         val index = todoList.indexOf(item)
         if (index != -1) {
             todoList[index] = item.copy(todoStatus = !item.todoStatus)
         }
     }
-    var currentInput by remember { mutableStateOf("") }
+    var currentInput by rememberSaveable { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
     Scaffold(
         topBar = {
