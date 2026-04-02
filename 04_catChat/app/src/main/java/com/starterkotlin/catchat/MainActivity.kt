@@ -36,12 +36,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -172,7 +167,10 @@ class MainActivity : ComponentActivity() {
                         ) {
                             composable<Home> {
                                 HomeScreen(
-
+                                    mailList = mailListViewModel.mailList,
+                                    onToggle = { mail ->
+                                        mailListViewModel.toggleReadStatus(mail)
+                                    }
                                 )
                             }
                             composable<About> { Text("About Screen") }
@@ -189,18 +187,20 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun HomeScreen(
     mailList: List<Mail>,
-    onToggle: (Mail, Boolean) -> Unit,
+    onToggle: (Mail) -> Unit,
     modifier: Modifier = Modifier
 ) {
     RecyclerView(
-        modifier = modifier
+        mailList,
+        onToggle,
+        modifier = modifier,
     )
 }
 
 @Composable
 fun RecyclerView(
     mailList: List<Mail>,
-    onToggle: (Mail, Boolean) -> Unit,
+    onToggle: (Mail) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn (
@@ -209,15 +209,7 @@ fun RecyclerView(
         items (mailList) { item ->
             MailCard(
                 item,
-                { isChecked ->
-                    mailList = mailList.map { currentMail ->
-                        if (currentMail.text == item.text && currentMail.date == item.date) {
-                            currentMail.copy(isRead = !isChecked)
-                        } else {
-                            currentMail
-                        }
-                    }
-                },
+                onToggleRead = onToggle,
                 modifier = Modifier
                     .padding(3.dp)
             )
@@ -261,7 +253,7 @@ fun MailCard(
                 )
                 Checkbox(
                     checked = mail.isRead,
-                    onCheckedChange = { onCheckChange(mail) },
+                    onCheckedChange = { onToggleRead(mail) },
                 )
             }
         }
