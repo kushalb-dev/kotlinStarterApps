@@ -12,9 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.DensityMedium
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.PlayCircleFilled
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,6 +40,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,8 +51,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.starterkotlin.catchat.ui.theme.CatChatTheme
 import kotlinx.coroutines.launch
@@ -55,6 +62,10 @@ import kotlinx.serialization.Serializable
 
 class MainActivity : ComponentActivity() {
 
+    /**
+     * Serializable used by the navController
+     * to navigate between the screens
+     */
     @Serializable object Home
     @Serializable object Settings
     @Serializable object About
@@ -70,9 +81,14 @@ class MainActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
                 val mailListViewModel: MailListViewModel = viewModel()
 
+
                 ModalNavigationDrawer(
                     drawerState = drawerState,
                     drawerContent = {
+                        /**
+                         * Drawer Content for items inside
+                         * the navigationDrawer
+                         */
                         ModalDrawerSheet {
                             Text(
                                 "App Menu",
@@ -85,7 +101,7 @@ class MainActivity : ComponentActivity() {
                                     Icon(Icons.Default.Home, contentDescription = getString(R.string.home))
                                 },
                                 label = { Text(getString(R.string.home)) },
-                                selected = currentFocus?.isSelected == true,
+                                selected = false,
                                 onClick = {
                                     navController.navigate(Home)
                                     scope.launch { drawerState.close() }
@@ -96,7 +112,7 @@ class MainActivity : ComponentActivity() {
                                     Icon(Icons.Default.Info, contentDescription = getString(R.string.about))
                                 },
                                 label = { Text(getString(R.string.about)) },
-                                selected = currentFocus?.isSelected == true,
+                                selected = false,
                                 onClick = {
                                     navController.navigate(About)
                                     scope.launch { drawerState.close() }
@@ -116,6 +132,12 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) {
+                    /**
+                     * Scaffold containing the
+                     * TopBar & BottomBar
+                     */
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentDestination = navBackStackEntry?.destination
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),
                         topBar = { TopAppBar(
@@ -133,26 +155,36 @@ class MainActivity : ComponentActivity() {
                             },
                             actions = {
                                 IconButton(
-                                    onClick = { navController.navigate(About) }
+                                    onClick = { navController.navigate(Settings) }
                                 ) {
-                                    Icon(Icons.Default.Info, contentDescription = stringResource(R.string.about_app))
+                                    Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                                 }
                             }
                         )},
                         bottomBar = {
                             NavigationBar {
+                                val isHomeSelected = currentDestination?.hasRoute<Home>() == true
                                 NavigationBarItem(
-                                    selected = false,
+                                    selected = isHomeSelected,
                                     icon = {
-                                        Icon(Icons.Default.Home, contentDescription = stringResource(R.string.home))
+                                        Icon(if (isHomeSelected) Icons.Default.AccessTimeFilled else  Icons.Default
+                                            .AccessTime,
+                                            contentDescription =
+                                            stringResource(R.string
+                                            .home))
                                     },
                                     label = { Text(stringResource(R.string.home))},
                                     onClick = { navController.navigate(Home) }
                                 )
+                                val isAboutSelected = currentDestination?.hasRoute<About>() == true
                                 NavigationBarItem(
-                                    selected = false,
+                                    selected = isAboutSelected,
                                     icon = {
-                                        Icon(Icons.Default.Info, contentDescription = stringResource(R.string.home))
+                                        Icon(if (isAboutSelected) Icons.Default.PlayCircleFilled else Icons.Default
+                                            .PlayCircle,
+                                            contentDescription =
+                                            stringResource(R
+                                            .string.home))
                                     },
                                     label = { Text(stringResource(R.string.about))},
                                     onClick = { navController.navigate(About) }
@@ -197,6 +229,10 @@ fun HomeScreen(
     )
 }
 
+/**
+ * Recycler View to display
+ * @param mailList in [HomeScreen]
+ */
 @Composable
 fun RecyclerView(
     mailList: List<Mail>,
@@ -217,6 +253,11 @@ fun RecyclerView(
     }
 }
 
+/**
+ * Card that displays [Mail],
+ * also hoists the [Checkbox]'s onCheckedChange
+ * function into the [onToggleRead] function
+ */
 @Composable
 fun MailCard(
     mail: Mail,
@@ -232,7 +273,7 @@ fun MailCard(
         modifier = modifier
     ) {
         Row(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -264,4 +305,16 @@ fun MailCard(
 @Composable
 fun MailCardPreview() {
     MailCard(Mail("123", "1/1/2001", false), {})
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+    HomeScreen(
+        mailList = listOf(
+            Mail("123", "1/1/2001", false),
+            Mail("123", "1/1/2001", false),
+        ),
+        onToggle = {},
+    )
 }
