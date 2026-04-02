@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">SecretMessage</string>
+    <string name="welcome_text">Welcome to the secret message app! Use this app to encrypt a secret message. Click on the start button to begin.</string>
+    <string name="start">Start</string>
+    <string name="enter_your_secret_message">Enter your secret message...</string>
+    <string name="encrypt_view"><![CDATA[Encrypt & View]]></string>
+    <string name="your_encrypted_message">Your Encrypted Message:</string>
+</resources>
