@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">BitsAndPizzas</string>
+    <string name="pizza_prompt">Which type of pizza would you like?</string>
+    <string name="extras_prompt">Do you want any extras?</string>
+</resources>
