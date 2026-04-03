@@ -57,6 +57,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Sets the [gameViewModel] and *navController*
+ * Also handles the navigation between screens
+ * Passes the arguments to result screen
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GuessingGameApp(
@@ -112,6 +117,11 @@ fun GuessingGameApp(
     }
 }
 
+/**
+ * Shows the result of the game
+ * using [won] and also the correct
+ * word [correctWord]
+ */
 @Composable
 fun ResultScreen(
     won: Boolean,
