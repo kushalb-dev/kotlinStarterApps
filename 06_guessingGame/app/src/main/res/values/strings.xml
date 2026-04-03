@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">GuessingGame</string>
+    <string name="guess_a_letter">Guess a letter!</string>
+    <string name="guess">Guess</string>
 </resources>
